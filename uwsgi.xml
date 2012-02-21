@@ -1,0 +1,13 @@
+<uwsgi>
+	<home>/home/leo/code/python/env/env1/</home>
+	<pythonpath>/home/leo/code/python/a/</pythonpath>
+	<module>app</module>
+	<callable>app</callable>
+	<socket>/tmp/uwsgi.sock</socket>
+	<socket-timeout>5</socket-timeout>
+	<chmod-socket>666</chmod-socket>
+	<master/>
+	<processes>4</processes>
+	<memory-report/>
+	<touch-reload>/home/leo/code/python/a/</touch-reload>
+</uwsgi>
