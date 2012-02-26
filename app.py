@@ -39,6 +39,21 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
+@app.route('/add/', methods=['POST', 'GET'])
+def add():
+    categorys = db.session.query(Category).all()
+    for category in categorys:
+        if new_category == category.name:
+            new_post = db.Post(new_title, new_content, category.id, new_date)
+            db.session.add(new_post)
+            db.session.commit()
+        else:
+            new_category = db.Category(new_category)
+            new_post = db.Post(new_title, new_content, new_category, new_date)
+            db.session.add(new_category)
+            db.session.add(new_post)
+            db.session.commit()
+
 @app.route("/")
 def hello():
     return render_template('index.html', tips=u"十年之前change")
