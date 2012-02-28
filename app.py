@@ -13,6 +13,7 @@ db = SQLAlchemy(app)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    origin = db.Column(db.Test)
     title = db.Column(db.String(80))
     body = db.Column(db.Text)
     pub_date = db.Column(db.DateTime)
@@ -21,7 +22,8 @@ class Post(db.Model):
     category = db.relationship('Category',
         backref=db.backref('posts', lazy='dynamic'))
 
-    def __init__(self, title, body, category, pub_date=None):
+    def __init__(self, origin, title, body, category, pub_date=None):
+        self.origin = origin
         self.title = title
         self.body = body
         if pub_date is None:
@@ -65,7 +67,7 @@ def read(content):
             k, v = k.rstrip(), v.lstrip()
             dct[k] = v
     text = content[match.end():]
-    dct['content'] = markdown(text)
+    dct['body'] = markdown(text)
     dct['origin'] = content
     return dct
 
@@ -81,18 +83,30 @@ def add():
             if data['category'] == category.name:
                 new_category = category
         if new_category != None:
-            new_post = Post(data['title'], data['content'], new_category)
+            new_post = Post(data['origin'], data['title'], data['body'], new_category)
             db.session.add(new_post)
             db.session.commit()
         else:
             new_category = Category(data['category'])
-            new_post = Post(data['title'], data['content'], new_category)
+            new_post = Post(data['origin'], data['title'], data['body'], new_category)
             db.session.add(new_category)
             db.session.add(new_post)
             db.session.commit()
         return 'all ok'
 
-@app.route("/")
+@app.route('/<ind:id>/edit/', methods=['POST', 'GET'])
+def post(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    if request.method == 'GET':
+        return render_template('add.html', post = post)
+    if request.method == 'POST':
+        data = read(request.form['content'])
+        post.origin = request.form['content']
+        post.title = data['title']
+        post.body = data['body']
+        
+
+@app.route('/')
 def hello():
     return render_template('index.html', tips=u"十年之前change")
 

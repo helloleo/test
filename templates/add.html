@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block head %}
+<title>this is index</title>
+{% endblock %}
+{% block body %}
+<form method="post">
+<textarea name="content">
+{% if post %}
+{{ post.origin }}
+{% endif %}
+</textarea>
+<input type="submit" value="Submit" />
+</form>
+{% endblock %}
