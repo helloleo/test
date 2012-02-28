@@ -13,7 +13,7 @@ db = SQLAlchemy(app)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    origin = db.Column(db.Test)
+    origin = db.Column(db.Text)
     title = db.Column(db.String(80))
     body = db.Column(db.Text)
     pub_date = db.Column(db.DateTime)
@@ -94,7 +94,7 @@ def add():
             db.session.commit()
         return 'all ok'
 
-@app.route('/<ind:id>/edit/', methods=['POST', 'GET'])
+@app.route('/<int:id>/edit/', methods=['POST', 'GET'])
 def post(id):
     post = Post.query.filter_by(id=id).first_or_404()
     if request.method == 'GET':
@@ -104,11 +104,24 @@ def post(id):
         post.origin = request.form['content']
         post.title = data['title']
         post.body = data['body']
-        
+        categorys = Category.query.all()
+        new_category = None
+        for category in categorys:
+            if data['category'] == category.name:
+                new_category = category
+        if new_category != None:
+            post.category = new_category
+        else:
+            new_category = Category(data['category'])
+            db.session.add(new_category)
+            post.category = new_category
+        db.session.add(post)
+        db.session.commit()
+        return '修改成功'
 
 @app.route('/')
 def hello():
-    return render_template('index.html', tips=u"十年之前change")
+    return 'INDEX'
 
 if __name__ == '__main__':
     app.debug = True
