@@ -1,14 +1,19 @@
 #coding=utf-8
 
-import re
+import os, re
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, flash, redirect, url_for
 from flaskext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 from markdown import markdown
 
+SQLALCHEMY_DATABASE_URI = 'mysql://root:helloleo@localhost/flask?charset=utf8'
+SECRET_KEY = os.urandom(24)
+USERNAME = 'leo'
+PASSWORD = 'helloleo'
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:helloleo@localhost/flask?charset=utf8'
+app.config.from_object(__name__)
 db = SQLAlchemy(app)
 
 class Post(db.Model):
@@ -119,8 +124,20 @@ def post(id):
         db.session.commit()
         return '修改成功'
 
+@app.route('/login/', methods=['POST', 'GET'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != app.config['USERNAME'] or request.form['password'] != app.config['PASSWORD']:
+            error = 'Invalid username or password'
+        else:
+            session['logged_in'] = True
+            flash('You were logged in')
+            return redirect(url_for('index'))
+    return render_template('login.html', error=error)
+
 @app.route('/')
-def hello():
+def index():
     return 'INDEX'
 
 if __name__ == '__main__':
