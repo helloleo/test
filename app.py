@@ -2,7 +2,7 @@
 
 import os, re
 
-from flask import Flask, request, render_template, session, flash, redirect, url_for
+from flask import Flask, request, render_template, session, flash, redirect, url_for, _request_ctx_stack
 from flaskext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 from markdown import markdown
@@ -15,6 +15,16 @@ PASSWORD = 'helloleo'
 app = Flask(__name__)
 app.config.from_object(__name__)
 db = SQLAlchemy(app)
+
+@app.before_request
+def before_request():
+    method = request.form.get('_method', '').upper()
+    if method:
+        request.environ['REQUEST_METHOD'] = method
+        #ctx = _request_ctx_stack.top
+        #ctx.url_adapter.default_method = method
+        #assert request.method == method
+        print method
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,29 +92,28 @@ def add():
         return render_template('add.html')
     if request.method == 'POST':
         data = read(request.form['content'])
-        categorys = db.session.query(Category).all()
         new_category = None
+        categorys = db.session.query(Category).all()
         for category in categorys:
             if data['category'] == category.name:
                 new_category = category
-        if new_category != None:
-            new_post = Post(data['origin'], data['title'], data['body'], new_category)
-            db.session.add(new_post)
-            db.session.commit()
-        else:
+        if new_category == None:
             new_category = Category(data['category'])
-            new_post = Post(data['origin'], data['title'], data['body'], new_category)
             db.session.add(new_category)
-            db.session.add(new_post)
-            db.session.commit()
+        new_post = Post(data['origin'], data['title'], data['body'], new_category)
+        db.session.add(new_post)
+        db.session.commit()
         return 'all ok'
 
-@app.route('/note/<int:id>/', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/note/<int:id>/', methods=['POST', 'GET', 'PUT', 'DELETE'])
 def note(id):
     post = Post.query.filter_by(id=id).first_or_404()
+    if request.method == 'POST':
+        return 'POST'
     if request.method == 'GET':
         return render_template('note.html', post = post)
     if request.method == 'PUT':
+        print 'OKOK'
         data = read(request.form['content'])
         post.origin = request.form['content']
         post.title = data['title']
