@@ -65,7 +65,7 @@ def read(content):
     for meta in meta.split('\n'):
         meta = meta.replace('\t', '    ')
         if meta.startswith('  ') and k:
-            dct[k] = dct[k] + '\n' + meta.lstrip()
+            dct[k] = dct[k] + '\n' + meta.strip()
         if ':' in meta and not meta.startswith(' '):
             index = meta.find(':')
             k, v = meta[:index], meta[index + 1:]
@@ -76,7 +76,7 @@ def read(content):
     dct['origin'] = content
     return dct
 
-@app.route('/add/', methods=['POST', 'GET'])
+@app.route('/note/', methods=['POST', 'GET'])
 def add():
     if request.method == 'GET':
         return render_template('add.html')
@@ -98,6 +98,32 @@ def add():
             db.session.add(new_post)
             db.session.commit()
         return 'all ok'
+
+@app.route('/note/<int:id>/', methods=['GET', 'PUT', 'DELETE'])
+def note(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    if request.method == 'GET':
+        return render_template('note.html', post = post)
+    if request.method == 'PUT':
+        data = read(request.form['content'])
+        post.origin = request.form['content']
+        post.title = data['title']
+        post.body = data['body']
+        new_category = None
+        categorys = Category.query.all()
+        for category in categorys:
+            if data['category'] == category.name:
+                new_category = category
+        if new_category == None:
+            new_category = Category(data['category'])
+            db.session.add(new_category)
+        post.category = new_category
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for('index'))
+    if request.method == 'DELETE':
+        db.session.delete(post)
+        db.session.commit()
 
 @app.route('/<int:id>/edit/', methods=['POST', 'GET'])
 def post(id):
