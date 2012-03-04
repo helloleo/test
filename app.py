@@ -60,30 +60,29 @@ class Category(db.Model):
         return '<Category %r>' % self.name
 
 def read(content):
+    dct = {}
     meta_regex = re.compile(
         r"^\s*(?:-|=){3,}\s*\n((?:.|\n)+?)\n\s*(?:-|=){3,}\s*\n*",
         re.MULTILINE
     )
     match = re.match(meta_regex, content)
     if not match:
-        logger.error("No metadata in: %s" % self.filepath)
-        return None
-    meta = match.group(1)
-    meta = re.sub(r'\r\n|\r|\n', '\n', meta)
-    dct = {}
-    k = v = None
-    for meta in meta.split('\n'):
-        meta = meta.replace('\t', '    ')
-        if meta.startswith('  ') and k:
-            dct[k] = dct[k] + '\n' + meta.strip()
-        if ':' in meta and not meta.startswith(' '):
-            index = meta.find(':')
-            k, v = meta[:index], meta[index + 1:]
-            k, v = k.rstrip(), v.lstrip()
-            dct[k] = v
-    text = content[match.end():]
-    dct['body'] = markdown(text)
-    dct['origin'] = content
+        dct['body'] = markdown(content)
+    else:
+        meta = match.group(1)
+        meta = re.sub(r'\r\n|\r|\n', '\n', meta)
+        k = v = None
+        for meta in meta.split('\n'):
+            meta = meta.replace('\t', '    ')
+            if meta.startswith('  ') and k:
+                dct[k] = dct[k] + '\n' + meta.strip()
+            if ':' in meta and not meta.startswith(' '):
+                index = meta.find(':')
+                k, v = meta[:index], meta[index + 1:]
+                k, v = k.rstrip(), v.lstrip()
+                dct[k] = v
+        text = content[match.end():]
+        dct['body'] = markdown(text)
     return dct
 
 @app.route('/note/', methods=['POST', 'GET'])
@@ -113,11 +112,14 @@ def note(id):
     if request.method == 'GET':
         return render_template('note.html', post = post)
     if request.method == 'PUT':
-        print 'OKOK'
         data = read(request.form['content'])
         post.origin = request.form['content']
-        post.title = data['title']
         post.body = data['body']
+        if not data.has_key('title') or data['title'] == '':
+            data['title'] = datetime.utcnow()
+        post.title = data['title']
+        if not data.has_key('category') or data['category'] == '':
+            data['category'] = 'uncategorized'
         new_category = None
         categorys = Category.query.all()
         for category in categorys:
