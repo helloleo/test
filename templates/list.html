@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block head %}
+<title>LEO</title>
+{% endblock %}
+{% block body %}
+{% if list %}
+<ul>
+{% for item in list %}
+<li>
+<a href="/note/{{ item.id }}/">{{ item.title }}</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

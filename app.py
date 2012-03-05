@@ -2,6 +2,7 @@
 
 import os, re
 
+import time
 from flask import Flask, request, render_template, session, flash, redirect, url_for, _request_ctx_stack
 from flaskext.sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -21,10 +22,9 @@ def before_request():
     method = request.form.get('_method', '').upper()
     if method:
         request.environ['REQUEST_METHOD'] = method
-        #ctx = _request_ctx_stack.top
-        #ctx.url_adapter.default_method = method
-        #assert request.method == method
-        print method
+        ctx = _request_ctx_stack.top
+        ctx.url_adapter.default_method = method
+        assert request.method == method
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -79,9 +79,9 @@ def read(content):
             if ':' in meta and not meta.startswith(' '):
                 index = meta.find(':')
                 k, v = meta[:index], meta[index + 1:]
-                k, v = k.rstrip(), v.lstrip()
+                k, v = k.strip(), v.strip()
                 dct[k] = v
-        text = content[match.end():]
+        text = content[match.end():].strip()
         dct['body'] = markdown(text)
     return dct
 
@@ -129,9 +129,15 @@ def note(id):
             new_category = Category(data['category'])
             db.session.add(new_category)
         post.category = new_category
+        if data.has_key('date') and data['date'] != '':
+            try:
+                post.pub_date = datetime.strptime(data['date'], "%Y-%m-%d")
+            except:
+                pass
         db.session.add(post)
         db.session.commit()
-        return redirect(url_for('index'))
+        #return redirect(url_for('note'))
+        return render_template('note.html', post=post)
     if request.method == 'DELETE':
         db.session.delete(post)
         db.session.commit()
@@ -175,7 +181,8 @@ def login():
 
 @app.route('/')
 def index():
-    return 'INDEX'
+    posts = Post.query.all()
+    return render_template('list.html', list=posts)
 
 if __name__ == '__main__':
     app.debug = True

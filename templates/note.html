@@ -1,15 +1,18 @@
 {% extends "layout.html" %}
 {% block head %}
-<title>this is index</title>
+<title>{{ post.title }} | LEO</title>
 {% endblock %}
 {% block body %}
+<div id="container">
 <h2>{{ post.title }}</h2>
-{% if post %}
 <div>
 {{ post.category.name}}
 </div>
 <div>
-{{ post.body }}
+{{ post.pub_date }}
+</div>
+<div>
+{{ post.body|safe }}
 </div>
 {% if session.logged_in %}
 <form method="post">
@@ -22,5 +25,5 @@
 <input type="submit" value="DELETE" />
 </form>
 {% endif %}
-{% endif %}
+</div>
 {% endblock %}
