@@ -8,7 +8,7 @@ from flaskext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 from markdown import markdown
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:helloleo@localhost/flask?charset=utf8'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:helloleo@localhost/text?charset=utf8'
 SECRET_KEY = os.urandom(24)
 USERNAME = 'leo'
 PASSWORD = 'helloleo'
@@ -99,7 +99,7 @@ def add():
         if new_category == None:
             new_category = Category(data['category'])
             db.session.add(new_category)
-        new_post = Post(data['origin'], data['title'], data['body'], new_category)
+        new_post = Post(request.form['content'], data['title'], data['body'], new_category)
         db.session.add(new_post)
         db.session.commit()
         return 'all ok'
