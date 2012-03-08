@@ -6,24 +6,21 @@
 <div id="container">
 <h2>{{ post.title }}</h2>
 <div>
-<table>
-<tr>
-<td>
-category
-</td>
-<td>
-{{ post.category.name}}
-</td>
-</tr>
-<tr>
-<td>
-date
-</td>
-<td>
-{{ post.pub_date }}
-</td>
-</tr>
-</table>
+	<table>
+		<tr>
+			<td>
+				category
+			</td>
+			<td>{{ post.category.name}}</td>
+		</tr>
+		<tr>
+			<td>
+				date
+			</td>
+			<td>{{ post.pub_date }}</td>
+		</tr>
+	</table>
+</div>
 <div>
 {{ post.body|safe }}
 </div>

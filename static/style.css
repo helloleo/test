@@ -1,9 +1,9 @@
 body{color:#3c3c3c;font-size:1em;font-family: "Palatino","Georgia","Hiragino Mincho ProN","Microsoft YaHei","WenQuanYi Micro Hei",serif;line-height:1.6em;}
-h1, h2, h3, h4, h5, h6{font-size:1em;font-weight:normal;}
 h1, h2{font-size:1.2em;padding:50px 0 30px;text-align:center;}
 
 a{text-decoration:none;color:blue;}
 a:hover{text-decoration:underline;}
+p{margin-bottom:1em;}
 #container{max-width:640px;margin:0 auto;font-size:16px;line-height:30px;}
 
 .edit textarea{padding:10px;background:#f2f2f2;color:#3c3c3c;font-size:inherit;border-radius:5px;line-height:1;}

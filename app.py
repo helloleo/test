@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #coding=utf-8
 
 import os, re
@@ -90,6 +91,7 @@ def add():
     if request.method == 'GET':
         return render_template('add.html')
     if request.method == 'POST':
+        """
         data = read(request.form['content'])
         new_category = None
         categorys = db.session.query(Category).all()
@@ -103,12 +105,38 @@ def add():
         db.session.add(new_post)
         db.session.commit()
         return 'all ok'
+        """
+        data = read(request.form['content'])
+        post.origin = request.form['content']
+        post.body = data['body']
+        if not data.has_key('title') or data['title'] == '':
+            data['title'] = datetime.utcnow()
+        post.title = data['title']
+        if not data.has_key('category') or data['category'] == '':
+            data['category'] = 'uncategorized'
+        new_category = None
+        categorys = Category.query.all()
+        for category in categorys:
+            if data['category'] == category.name:
+                new_category = category
+        if new_category == None:
+            new_category = Category(data['category'])
+            db.session.add(new_category)
+        post.category = new_category
+        if data.has_key('date') and data['date'] != '':
+            try:
+                post.pub_date = datetime.strptime(data['date'], "%Y-%m-%d")
+            except:
+                pass
+        db.session.add(post)
+        db.session.commit()
+        return render_template('note.html', post=post)
 
 @app.route('/note/<int:id>/', methods=['POST', 'GET', 'PUT', 'DELETE'])
 def note(id):
     post = Post.query.filter_by(id=id).first_or_404()
     if request.method == 'POST':
-        return 'POST'
+        pass
     if request.method == 'GET':
         return render_template('note.html', post = post)
     if request.method == 'PUT':
@@ -136,36 +164,11 @@ def note(id):
                 pass
         db.session.add(post)
         db.session.commit()
-        #return redirect(url_for('note'))
         return render_template('note.html', post=post)
     if request.method == 'DELETE':
         db.session.delete(post)
         db.session.commit()
-
-@app.route('/<int:id>/edit/', methods=['POST', 'GET'])
-def post(id):
-    post = Post.query.filter_by(id=id).first_or_404()
-    if request.method == 'GET':
-        return render_template('add.html', post = post)
-    if request.method == 'POST':
-        data = read(request.form['content'])
-        post.origin = request.form['content']
-        post.title = data['title']
-        post.body = data['body']
-        categorys = Category.query.all()
-        new_category = None
-        for category in categorys:
-            if data['category'] == category.name:
-                new_category = category
-        if new_category != None:
-            post.category = new_category
-        else:
-            new_category = Category(data['category'])
-            db.session.add(new_category)
-            post.category = new_category
-        db.session.add(post)
-        db.session.commit()
-        return '修改成功'
+        return redirect(url_for('list'))
 
 @app.route('/login/', methods=['POST', 'GET'])
 def login():
@@ -176,11 +179,11 @@ def login():
         else:
             session['logged_in'] = True
             flash('You were logged in')
-            return redirect(url_for('index'))
+            return redirect(url_for('list'))
     return render_template('login.html', error=error)
 
 @app.route('/')
-def index():
+def list():
     posts = Post.query.all()
     return render_template('list.html', list=posts)
 
